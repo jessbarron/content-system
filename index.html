@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Content Machine · Jess Barron</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #1a1512;
+    --ink: #241d18;
+    --white: #faf6f0;
+    --paper: #fdfaf5;
+    --green: #e0512f;        /* burnt coral accent */
+    --green-deep: #c23d1e;   /* deeper coral */
+    --green-light: #fbe8e0;  /* soft coral tint */
+    --mid: #443b34;
+    --light: #96897d;
+    --rule: #e8ddd0;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--green); color: white; }
+
+  /* ── PROGRESS BAR ── */
+  .progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: var(--green);
+    width: 0%;
+    z-index: 100;
+    transition: width 0.1s ease;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--black);
+    color: var(--white);
+    padding: 96px 60px 72px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    top: -120px; right: -120px;
+    width: 480px; height: 480px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(224,81,47,0.28) 0%, transparent 68%);
+    pointer-events: none;
+  }
+
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -200px; left: -100px;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(224,81,47,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .header-inner { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }
+
+  .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.1s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .eyebrow::before {
+    content: '';
+    width: 28px;
+    height: 1px;
+    background: var(--green);
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2.6rem, 6vw, 4.4rem);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    color: var(--white);
+    max-width: 800px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards 0.2s;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--green);
+    position: relative;
+  }
+
+  .header-sub {
+    margin-top: 28px;
+    font-size: 1.15rem;
+    font-weight: 300;
+    color: rgba(248,246,241,0.7);
+    max-width: 620px;
+    line-height: 1.6;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards 0.35s;
+  }
+
+  .header-meta {
+    margin-top: 56px;
+    display: flex;
+    gap: 56px;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards 0.45s;
+    padding-top: 32px;
+    border-top: 1px solid rgba(248,246,241,0.12);
+  }
+
+  .meta-item { display: flex; flex-direction: column; gap: 6px; }
+  .meta-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--green);
+  }
+  .meta-value {
+    font-size: 0.95rem;
+    color: rgba(248,246,241,0.82);
+    font-weight: 400;
+  }
+
+  /* ── MAIN ── */
+  main { max-width: 820px; margin: 0 auto; padding: 96px 40px 120px; }
+
+  section { margin-bottom: 88px; opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  section.visible { opacity: 1; transform: translateY(0); }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.9rem, 3.5vw, 2.4rem);
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    margin-bottom: 24px;
+  }
+
+  p {
+    font-size: 1.05rem;
+    color: var(--mid);
+    margin-bottom: 18px;
+    line-height: 1.78;
+  }
+
+  p:last-child { margin-bottom: 0; }
+
+  .lead-in {
+    font-size: 1.2rem;
+    color: var(--ink);
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  /* ── STATS ── */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1px;
+    margin: 48px 0;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .stat {
+    background: var(--paper);
+    padding: 32px 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: background 0.3s ease;
+    position: relative;
+  }
+
+  .stat:hover { background: var(--green-light); }
+
+  .stat-number {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.4rem;
+    color: var(--ink);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .stat-number span { color: var(--green); }
+
+  .stat-label {
+    font-size: 0.82rem;
+    color: var(--light);
+    font-weight: 400;
+    line-height: 1.45;
+  }
+
+  .stat.feature {
+    background: var(--black);
+    grid-column: span 2;
+  }
+
+  .stat.feature .stat-number { color: var(--white); font-size: 2.8rem; }
+  .stat.feature .stat-number span { color: var(--green); }
+  .stat.feature .stat-label { color: rgba(248,246,241,0.6); }
+  .stat.feature:hover { background: #16171a; }
+
+  /* ── SYSTEM ── */
+  .system {
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 48px 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03), 0 12px 32px rgba(0,0,0,0.04);
+  }
+
+  .system-header {
+    background: var(--black);
+    padding: 20px 28px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--green);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .system-header::before {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 12px var(--green);
+  }
+
+  .system-row {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    border-bottom: 1px solid var(--rule);
+    transition: background 0.25s ease;
+  }
+
+  .system-row:last-child { border-bottom: none; }
+  .system-row:hover { background: var(--green-light); }
+
+  .system-phase {
+    background: #f2efe8;
+    padding: 24px 22px;
+    display: flex;
+    align-items: flex-start;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--green-deep);
+    border-right: 1px solid var(--rule);
+    font-weight: 500;
+    transition: background 0.25s ease;
+    gap: 10px;
+  }
+
+  .system-row:hover .system-phase { background: #ebe7dd; }
+
+  .phase-num {
+    color: var(--light);
+    font-size: 10px;
+  }
+
+  .system-content {
+    padding: 24px 28px;
+    font-size: 0.92rem;
+    color: var(--mid);
+    line-height: 1.65;
+  }
+
+  .system-content strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .tag {
+    display: inline-block;
+    background: var(--green-light);
+    color: var(--green-deep);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    padding: 4px 10px;
+    border-radius: 3px;
+    margin: 3px 4px 3px 0;
+    font-weight: 500;
+  }
+
+  /* ── PULL QUOTE ── */
+  blockquote {
+    margin: 64px 0;
+    padding: 48px 44px;
+    background: var(--black);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  blockquote::before {
+    content: '"';
+    position: absolute;
+    top: -30px; left: 24px;
+    font-family: 'DM Serif Display', serif;
+    font-size: 10rem;
+    color: rgba(224,81,47,0.18);
+    line-height: 1;
+  }
+
+  blockquote p {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.6rem;
+    line-height: 1.45;
+    color: var(--white);
+    font-style: italic;
+    position: relative;
+    z-index: 1;
+    margin: 0;
+  }
+
+  blockquote .attribution {
+    margin-top: 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--green);
+    font-style: normal;
+  }
+
+  /* ── LESSONS ── */
+  .lessons { display: flex; flex-direction: column; gap: 0; margin-top: 32px; }
+
+  .lesson {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 20px;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--rule);
+    align-items: start;
+    transition: padding-left 0.3s ease;
+  }
+
+  .lesson:hover { padding-left: 12px; }
+  .lesson:last-child { border-bottom: none; }
+
+  .lesson-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.8rem;
+    color: var(--green);
+    line-height: 1;
+    opacity: 0.5;
+  }
+
+  .lesson-text {
+    font-size: 1.02rem;
+    color: var(--mid);
+    line-height: 1.7;
+  }
+
+  .lesson-text strong {
+    color: var(--ink);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 6px;
+    font-size: 1.08rem;
+  }
+
+  /* ── CTA ── */
+  .cta {
+    margin-top: 80px;
+    padding: 48px;
+    background: linear-gradient(135deg, #6b2414 0%, #1a1512 100%);
+    border-radius: 4px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 260px; height: 260px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(224,81,47,0.3) 0%, transparent 70%);
+  }
+
+  .cta h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.7rem;
+    color: var(--white);
+    margin-bottom: 14px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cta p {
+    color: rgba(248,246,241,0.7);
+    max-width: 440px;
+    margin: 0 auto 28px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cta a {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--black);
+    background: var(--green);
+    text-decoration: none;
+    padding: 14px 28px;
+    border-radius: 3px;
+    font-weight: 500;
+    position: relative;
+    z-index: 1;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .cta a:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(224,81,47,0.4);
+  }
+
+
+  /* SCREENSHOT SHOWCASE */
+  .showcase {
+    margin: 48px 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .shot {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--paper);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 16px 40px rgba(0,0,0,0.08);
+    transition: transform 0.35s ease, box-shadow 0.35s ease;
+    position: relative;
+  }
+
+  .shot:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.06), 0 24px 56px rgba(0,0,0,0.12);
+  }
+
+  .shot-frame {
+    height: 32px;
+    background: #f2efe8;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 7px;
+  }
+
+  .shot-dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: #d8d4cc;
+  }
+
+  .shot-img-wrap {
+    height: 300px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .shot-img-wrap img {
+    width: 100%;
+    display: block;
+    transition: transform 4s ease;
+  }
+
+  .shot:hover .shot-img-wrap img {
+    transform: translateY(calc(-100% + 300px));
+  }
+
+  .shot-caption {
+    padding: 16px 20px;
+    border-top: 1px solid var(--rule);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--light);
+  }
+
+  .shot-caption strong {
+    color: var(--green-deep);
+    font-weight: 500;
+  }
+
+  @media (max-width: 600px) {
+    .showcase { grid-template-columns: 1fr; }
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--black);
+    color: rgba(248,246,241,0.5);
+    padding: 48px 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-size: 0.85rem;
+  }
+
+  footer a {
+    color: var(--green);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  footer a:hover { text-decoration: underline; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 600px) {
+    header { padding: 56px 26px 44px; }
+    main { padding: 56px 22px 80px; }
+    footer { padding: 36px 24px; flex-direction: column; align-items: flex-start; }
+    .header-meta { gap: 28px; }
+    .system-row { grid-template-columns: 1fr; }
+    .system-phase { border-right: none; border-bottom: 1px solid var(--rule); }
+    .stat.feature { grid-column: span 1; }
+    blockquote { padding: 36px 28px; }
+    blockquote p { font-size: 1.3rem; }
+    .cta { padding: 36px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+
+<header>
+  <div class="header-inner">
+    <div class="eyebrow">Case Study · Content System Build</div>
+    <h1>How I built an <em>AI-augmented content engine</em> at SimplePractice</h1>
+    <p class="header-sub">Inside the content system I built at SimplePractice. A two-person team producing 1,200+ pieces a year and driving 4,374 paid customer accounts.</p>
+    <div class="header-meta">
+      <div class="meta-item">
+        <span class="meta-label">Company</span>
+        <span class="meta-value">SimplePractice</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Role</span>
+        <span class="meta-value">Director of Content</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Timeline</span>
+        <span class="meta-value">2022 – 2026</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Built by</span>
+        <span class="meta-value">Jess Barron</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- THE PROBLEM -->
+  <section>
+    <div class="section-label">01 · The Problem</div>
+    <h2>A big audience, a small team, and no machine</h2>
+    <p class="lead-in">When I joined SimplePractice in 2022, the content operation was producing a fraction of what the market demanded. And the audience was the hardest kind to win.</p>
+    <p>At the time, the platform served 45,000 mental health professionals: clinicians, psychiatrists, and therapists who could spot a generic health article from a mile away and click away just as fast. Winning them meant clearing a bar most content teams never have to touch. Clinical accuracy. Real editorial credibility. A voice that respected how much smarter the reader was than the average blog assumed.</p>
+    <p>And there was nothing to build on. No AI workflow. No contributor framework. No editorial standards. No system connecting a single published word to pipeline. Just a small team, a demanding audience, and a mandate to make content matter commercially. So I built the machine.</p>
+  </section>
+
+  <!-- THE RESULTS -->
+  <section>
+    <div class="section-label">02 · The Results</div>
+    <h2>What the machine produced</h2>
+    <p>Four years later, the numbers told the story better than any deck could.</p>
+    <div class="stats">
+      <div class="stat feature">
+        <div class="stat-number">670<span>%</span></div>
+        <div class="stat-label">Year-over-year organic traffic growth in 2025</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">1,200<span>+</span></div>
+        <div class="stat-label">Pieces published in 2025</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">4,374</div>
+        <div class="stat-label">Paid customer accounts attributed to content in 2025</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">10k<span>+</span></div>
+        <div class="stat-label">Monthly qualified leads from content in 2025</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">75<span>%</span></div>
+        <div class="stat-label">AI-assisted production in 2025</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">150<span>+</span></div>
+        <div class="stat-label">Freelance contributors managed in 2025</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">85<span>+</span></div>
+        <div class="stat-label">Clinical experts in the network in 2025</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREENSHOT SHOWCASE -->
+  <section>
+    <div class="section-label">The Work, Live</div>
+    <h2>What it looks like in the wild</h2>
+    <p>The system produced two flagship content hubs: a practice management resource library and the SimplePractice Blog, each engineered to rank, convert, and earn the trust of a clinical audience.</p>
+    <div class="showcase">
+      <div class="shot">
+        <div class="shot-frame">
+          <span class="shot-dot"></span><span class="shot-dot"></span><span class="shot-dot"></span>
+        </div>
+        <div class="shot-img-wrap">
+          <img src="sp-practice-management.png" alt="SimplePractice Practice Management resource library">
+        </div>
+        <div class="shot-caption"><strong>Practice Management Hub</strong> &nbsp;·&nbsp; 1,245+ resources, filtered by topic</div>
+      </div>
+      <div class="shot">
+        <div class="shot-frame">
+          <span class="shot-dot"></span><span class="shot-dot"></span><span class="shot-dot"></span>
+        </div>
+        <div class="shot-img-wrap">
+          <img src="sp-blog.png" alt="SimplePractice Blog homepage">
+        </div>
+        <div class="shot-caption"><strong>SimplePractice Blog</strong> &nbsp;·&nbsp; 2,113+ articles, expert-authored</div>
+      </div>
+    </div>
+    <p style="font-size: 0.85rem; color: var(--light); margin-top: 8px;">Hover to scroll through each page.</p>
+  </section>
+
+  <!-- THE SYSTEM -->
+  <section>
+    <div class="section-label">03 · The System</div>
+    <h2>How it actually worked</h2>
+    <p class="lead-in">At this scale, for this audience, you can't manage content piece by piece. You build a machine that runs itself.</p>
+    <p>Clear inputs. A defined process. Quality gates that catch problems before they ship. Feedback loops that make next month's content smarter than last month's. Here's the pipeline I designed, end to end.</p>
+
+    <div class="system">
+      <div class="system-header">Editorial Pipeline Architecture</div>
+
+      <div class="system-row">
+        <div class="system-phase"><span class="phase-num">01</span> Strategy</div>
+        <div class="system-content">
+          <strong>An SEO-led editorial calendar</strong> organized around keyword clusters, audience intent, and product priorities. Every slot went to topics with real practitioner search demand and commercial intent, never vanity traffic. The calendar anchored weekly planning with GTM, Product Marketing, and Customer Success.
+          <br><br>
+          <span class="tag">Keyword research</span>
+          <span class="tag">Intent mapping</span>
+          <span class="tag">Cross-functional alignment</span>
+        </div>
+      </div>
+
+      <div class="system-row">
+        <div class="system-phase"><span class="phase-num">02</span> Intake</div>
+        <div class="system-content">
+          <strong>AI-augmented brief generation</strong> using custom Gemini Gems trained on SimplePractice's voice, audience, and editorial standards. Each brief specified target keyword, audience segment, clinical accuracy requirements, word count, internal links, and a suggested outline, cutting brief-writing time by roughly 70%.
+          <br><br>
+          <span class="tag">Gemini Gems</span>
+          <span class="tag">Custom AI assistants</span>
+          <span class="tag">Templatized briefs</span>
+        </div>
+      </div>
+
+      <div class="system-row">
+        <div class="system-phase"><span class="phase-num">03</span> Production</div>
+        <div class="system-content">
+          <strong>A tiered contributor network</strong> of 150+ freelancers segmented by expertise: licensed clinicians for accuracy, SEO specialists for high-volume content, senior editors for thought leadership and executive ghostwriting. Each tier had its own brief format, rate card, revision policy, and quality rubric, plus real onboarding built on brand immersion and voice training.
+          <br><br>
+          <span class="tag">Tiered contributors</span>
+          <span class="tag">Clinical experts</span>
+          <span class="tag">Onboarding system</span>
+        </div>
+      </div>
+
+      <div class="system-row">
+        <div class="system-phase"><span class="phase-num">04</span> Quality</div>
+        <div class="system-content">
+          <strong>Multi-gate editorial review.</strong> An AI-assisted first pass caught voice, tone, and SEO issues. Editors owned clinical accuracy and narrative quality. I was the final gate: the call on what shipped, what got killed, and what went back for rework. If it could have run on any other health platform, it didn't run on ours.
+          <br><br>
+          <span class="tag">Editorial rubrics</span>
+          <span class="tag">Clinical review</span>
+          <span class="tag">Voice compliance</span>
+        </div>
+      </div>
+
+      <div class="system-row">
+        <div class="system-phase"><span class="phase-num">05</span> Distribution</div>
+        <div class="system-content">
+          <strong>A multi-channel distribution playbook.</strong> Nothing published and died. Every piece had a downstream life: blog, email newsletter, social, sales enablement, or customer story. High-value content was timed to product launches and campaigns in partnership with GTM and Communications.
+          <br><br>
+          <span class="tag">Blog</span>
+          <span class="tag">Email</span>
+          <span class="tag">Social</span>
+          <span class="tag">Sales enablement</span>
+        </div>
+      </div>
+
+      <div class="system-row">
+        <div class="system-phase"><span class="phase-num">06</span> Measurement</div>
+        <div class="system-content">
+          <strong>A content attribution framework</strong> tracking organic traffic, keyword rankings, time-on-page, lead conversion by content type, and paid-account attribution. Weekly reviews fed straight back into prioritization: content that converted got scaled, content that didn't got cut or refreshed.
+          <br><br>
+          <span class="tag">SEO analytics</span>
+          <span class="tag">Lead attribution</span>
+          <span class="tag">Conversion by type</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PULL QUOTE -->
+  <blockquote>
+    <p>The goal was never to produce more content. It was to build a system where quality and volume stopped competing.</p>
+    <div class="attribution">The operating principle</div>
+  </blockquote>
+
+  <!-- THE AI LAYER -->
+  <section>
+    <div class="section-label">04 · The AI Layer</div>
+    <h2>AI didn't replace the work. It augmented the workflows.</h2>
+    <p class="lead-in">By 2025, AI touched 75% of our content. But it was always a tool inside a human-built system, never a substitute for editorial judgment.</p>
+    <p>The real breakthrough was the custom Gemini Gems: AI assistants fine-tuned on SimplePractice's voice, clinical vocabulary, and audience expectations. These weren't generic prompts anyone could copy. They were trained editorial collaborators that understood the difference between how a therapist talks to a client and how a platform talks to a therapist. That distinction is one most AI content misses completely.</p>
+    <p>The payoff: a two-person in-house team that shipped like a team three times its size, without ever giving up the clinical credibility that made the content worth reading in the first place.</p>
+  </section>
+
+  <!-- WHAT I LEARNED -->
+  <section>
+    <div class="section-label">05 · What I Learned</div>
+    <h2>Five things I learned from building an AI-augmented content engine</h2>
+    <div class="lessons">
+      <div class="lesson">
+        <div class="lesson-num">01</div>
+        <div class="lesson-text"><strong>The bottleneck is the brief, not the writer.</strong> When quality is inconsistent, the instinct is to edit harder. Usually the brief just wasn't specific enough. Investing upstream in brief quality is the highest-leverage move in all of editorial.</div>
+      </div>
+      <div class="lesson">
+        <div class="lesson-num">02</div>
+        <div class="lesson-text"><strong>Treat contributors like partners, not vendors.</strong> The best freelancers weren't just delivering copy. They were invested in the product. That only happens when onboarding is real, feedback is fast, and good work leads to more meaningful work.</div>
+      </div>
+      <div class="lesson">
+        <div class="lesson-num">03</div>
+        <div class="lesson-text"><strong>AI exposes weak editorial judgment, it doesn't fix it.</strong> The teams that struggled with AI weren't fighting the technology. They were fighting a lack of clarity about what "good" looked like. AI just made that ambiguity visible faster.</div>
+      </div>
+      <div class="lesson">
+        <div class="lesson-num">04</div>
+        <div class="lesson-text"><strong>Credibility is a moat.</strong> While every health platform churned out generic wellness content, choosing clinical depth over volume built a durable edge. The audience noticed. So did the algorithm.</div>
+      </div>
+      <div class="lesson">
+        <div class="lesson-num">05</div>
+        <div class="lesson-text"><strong>A system beats a hero.</strong> The point was never to be the person who could write anything on demand. It was to build something that produced excellent work whether or not any single person showed up that day. That's the difference between running a team and building a machine.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="cta">
+    <h3>See the rest of the work</h3>
+    <p>This is one system among many. My full portfolio spans data journalism, clinical content, consumer health, and video production.</p>
+    <a href="https://jessbarron.github.io/portfolio/" target="_blank">View the portfolio</a>
+  </div>
+
+</main>
+
+<footer>
+  <span>Jess Barron · Director of Content, SimplePractice · 2022–2026</span>
+  <span>
+    <a href="https://linkedin.com/in/jessbarron">LinkedIn</a>
+    &nbsp;·&nbsp;
+    <a href="mailto:jessbeegood@gmail.com">jessbeegood@gmail.com</a>
+  </span>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll('section').forEach(s => observer.observe(s));
+
+  // Progress bar
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+    document.getElementById('progress').style.width = scrolled + '%';
+  });
+</script>
+
+</body>
+</html>
